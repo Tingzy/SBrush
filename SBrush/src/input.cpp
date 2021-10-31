@@ -25,6 +25,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		if (xpos > 0 && ypos > 0) {
+			changeColor((float)xpos, (float)ypos);
 			addVertice((float)xpos, (float)ypos);
 		}
 	}

@@ -12,12 +12,38 @@
 
 std::vector <GLfloat> g_vertex_buffer_data;
 int point_count;
+color_palette color_toggle;
+GLfloat color_object[3] = {1.0, 1.0, 0};
+std::vector <GLfloat> color_vector;
 
 int main()
 {
 	point_count = 0;
+	color_toggle = red;
 	glewExperimental = true; // Needed for core profile
-	if (!glfwInit())
+	GLfloat color_pick_square[36] = {
+		-0.98, 0.9, 0,
+		-0.95, 0.9, 0,
+		-0.98, 0.85, 0,
+		-0.95, 0.85, 0,
+		-0.98, 0.83, 0,
+		-0.95, 0.83, 0,
+		-0.98, 0.78, 0,
+		-0.95, 0.78, 0,
+		-0.98, 0.76, 0,
+		-0.95, 0.76, 0,
+		-0.98, 0.71, 0,
+		-0.95, 0.71, 0
+	};
+
+	int color_pick_square_size = *(&color_pick_square + 1) - color_pick_square;
+
+	for (int i = 0; i < color_pick_square_size; i++)
+	{
+		g_vertex_buffer_data.push_back(color_pick_square[i]);
+	}
+
+	if (!glfwInit()) 
 	{
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		return -1;
@@ -31,7 +57,7 @@ int main()
 
 	// Open a window and create its OpenGL context
 	GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
-	window = glfwCreateWindow(1920, 1080, "Tutorial 01", NULL, NULL);
+	window = glfwCreateWindow(1920, 1080, "SBrush", NULL, NULL);
 	if (window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		glfwTerminate();
@@ -70,15 +96,12 @@ int main()
 		// Clear the screen.
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		
-		if(point_count > 0)
-		{
-			// Give our vertices to OpenGL.
-			glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data.size() * sizeof(float), &g_vertex_buffer_data[0], GL_STATIC_DRAW);
-		}
+		// Give vertices to OpenGL.
+		glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data.size() * sizeof(float), &g_vertex_buffer_data[0], GL_STATIC_DRAW);
 
-		// Use our shader
+		// Use shader.
 		glUseProgram(programID);
+		GLint uniform = glGetUniformLocation(programID, "color");
 
 		//Set mouse callback
 		glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -96,11 +119,30 @@ int main()
 			(void*)0            // array buffer offset
 		);
 
+		//Draw the color pick squares.
+		//Red.
+		glUniform3f(uniform, 1.0, 0.0, 0.0);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 1, 3);
+		//Green.
+		glUniform3f(uniform, 0.0, 1.0, 0.0);
+		glDrawArrays(GL_TRIANGLES, 4, 3);
+		glDrawArrays(GL_TRIANGLES, 5, 3);
+		//Blue.
+		glUniform3f(uniform, 0.0, 0.0, 1.0);
+		glDrawArrays(GL_TRIANGLES, 8, 3);
+		glDrawArrays(GL_TRIANGLES, 9, 3);
+
+		// Draw the points.
 		if (point_count > 0)
 		{
-			// Draw the points !
-			glDrawArrays(GL_POINTS, 0, point_count);
+			for (int i = 0; i < point_count; i++)
+			{
+				glUniform3f(uniform, color_vector.at(i*3), color_vector.at(i * 3 +1), color_vector.at(i * 3+2));
+				glDrawArrays(GL_POINTS, i + color_pick_square_size, 1);
+			}
 		}
+
 		glDisableVertexAttribArray(0);
 
 
